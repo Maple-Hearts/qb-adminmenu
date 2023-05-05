@@ -1,4 +1,3 @@
-QBCore = exports['qb-core']:GetCoreObject()
 local ShowBlips = false
 local ShowNames = false
 local NetCheck1 = false
@@ -14,6 +13,7 @@ CreateThread(function()
 end)
 
 RegisterNetEvent('qb-admin:client:toggleBlips', function()
+    TriggerServerEvent('qb-admin:server:check')
     if not ShowBlips then
         ShowBlips = true
         NetCheck1 = true
@@ -25,6 +25,7 @@ RegisterNetEvent('qb-admin:client:toggleBlips', function()
 end)
 
 RegisterNetEvent('qb-admin:client:toggleNames', function()
+    TriggerServerEvent('qb-admin:server:check')
     if not ShowNames then
         ShowNames = true
         NetCheck2 = true
@@ -36,7 +37,7 @@ RegisterNetEvent('qb-admin:client:toggleNames', function()
 end)
 
 RegisterNetEvent('qb-admin:client:Show', function(players)
-    for _, player in pairs(players) do
+    for k, player in pairs(players) do
         local playeridx = GetPlayerFromServerId(player.id)
         local ped = GetPlayerPed(playeridx)
         local blip = GetBlipFromEntity(ped)
@@ -98,7 +99,7 @@ RegisterNetEvent('qb-admin:client:Show', function(players)
                         end
                     --OffRoad (9)
                     elseif classveh == 9 then
-                        if blipSprite ~= 757 then
+                        if blipSprite ~= 757 then           
                             SetBlipSprite(blip, 757)        --OffRoad icon
                             ShowHeadingIndicatorOnBlip(blip, false)
                         end
@@ -185,7 +186,7 @@ RegisterNetEvent('qb-admin:client:Show', function(players)
                         end
                     end
                     -- Show number in case of passangers
-                    local passengers = GetVehicleNumberOfPassengers(veh)
+                    passengers = GetVehicleNumberOfPassengers(veh)
                     if passengers then
                         if not IsVehicleSeatFree(veh, -1) then
                             passengers = passengers + 1

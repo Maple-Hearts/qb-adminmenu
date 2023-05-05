@@ -5,7 +5,7 @@ const copyToClipboard = str => {
     el.select();
     document.execCommand('copy');
     document.body.removeChild(el);
- };
+};
 
 window.addEventListener('message', (event) => {
     copyToClipboard(event.data.string);
