@@ -33,7 +33,7 @@ Config.Log = {
     --Set avatar for the log/annoucement (optional)
     avatar = "https://media.discordapp.net/attachments/1037224938005872661/1037225027453599744/Guess_project.png",
     --Set the server name for the log/annoucement (optional)
-    server_name = "Maple Hearts",
+    server_name = "Maple Leaf",
     --Color for the log/annoucement (optional)
     jail_color = 16711680,
 }

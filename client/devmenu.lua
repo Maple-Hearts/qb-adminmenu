@@ -1,6 +1,71 @@
 local vehDeleteMode = false
 local vehDelPos = nil
 local vehDelDist = 0.0
+local LineDistance = 5
+local isDrawingLine = false
+
+function SetLineDistance(number)
+    LineDistance = tonumber(number)
+end
+
+function ToggleDrawLine()
+    isDrawingLine = not isDrawingLine
+    if isDrawingLine then
+        QBCore.Functions.Notify('Coords Line On', "success")
+    else
+        QBCore.Functions.Notify('Coords Line Off', "success")
+    end
+end
+
+function CopyDrawLine(type)
+    if isDrawingLine then
+        local playerPed = PlayerPedId()
+        local playerCoords = GetEntityCoords(playerPed)
+        local playerHeading = GetEntityHeading(playerPed)
+        local cameraRotation = GetGameplayCamRot(2)
+        local camPitch = math.rad(cameraRotation.x)
+        local camYaw = math.rad(cameraRotation.y)
+        local lineLength = 10.0
+        local forwardVector = vector3(
+            math.sin(-playerHeading * math.pi / 180.0) * math.cos(camPitch),
+            math.cos(-playerHeading * math.pi / 180.0) * math.cos(camPitch),
+            math.sin(camPitch)
+        )
+        local lineEnd = playerCoords + forwardVector * lineLength
+        local rayHandle = StartShapeTestRay(playerCoords.x, playerCoords.y, playerCoords.z, lineEnd.x, lineEnd.y,
+            lineEnd.z, 7, playerPed, 0)
+        local _, hit, hitCoords, _, _ = GetShapeTestResult(rayHandle)
+        if hit then
+            local coords = {
+                x = hitCoords.x,
+                y = hitCoords.y,
+                z = hitCoords.z
+            }
+            local heading = playerHeading + 180.0
+            if heading > 360.0 then
+                heading = heading - 360.0
+            end
+            if type == '2' then
+                QBCore.Functions.Notify(Lang:t("success.coords_copied"), "success")
+                SendNUIMessage({
+                    string = string.format('vec2(%.2f, %.2f)', coords.x, coords.z)
+                })
+            elseif type == '3' then
+                QBCore.Functions.Notify(Lang:t("success.coords_copied"), "success")
+                SendNUIMessage({
+                    string = string.format('vec3(%.2f, %.2f, %.2f)', coords.x, coords.y, coords.z)
+                })
+            elseif type == '4' then
+                QBCore.Functions.Notify(Lang:t("success.coords_copied"), "success")
+                SendNUIMessage({
+                    string = string.format('vec4(%.2f, %.2f, %.2f, %.2f)', coords.x, coords.y, coords.z, heading)
+                })
+            end
+        end
+    else
+        QBCore.Functions.Notify('Coords Line Not Enabled', "success")
+    end
+end
 
 local function round(input, decimalPlaces)
     return tonumber(string.format("%." .. (decimalPlaces or 0) .. "f", input))
@@ -255,6 +320,105 @@ local DevMenuButton11 = DevMenu:AddButton({
     description = 'Entity View'
 })
 
+local DevMenuButton12 = DevMenu:AddButton({
+    icon = '👀',
+    label = 'Line Coords',
+    value = LineCoords,
+    description = 'Get Coords At The End Of A Line'
+})
+
+local LineCoordsButton1 = LineCoords:AddCheckbox({
+    icon = '🔦',
+    label = 'Toggle Coords Line',
+    value = LineCoords,
+    description = 'Toggle a line for viewing coords at the end of it'
+})
+LineCoordsButton1:On('change', function(item, newValue, oldValue)
+    ToggleDrawLine()
+end)
+
+local LineCoordsButton2 = LineCoords:AddButton({
+    icon = '2️⃣',
+    label = 'Copy Coords Line Vec2',
+    value = LineCoords,
+    description = 'Copy the coords at the end of the line'
+})
+LineCoordsButton2:On('select', function(item, newValue, oldValue)
+    CopyDrawLine('2')
+end)
+
+local LineCoordsButton3 = LineCoords:AddButton({
+    icon = '3️⃣',
+    label = 'Copy Coords Line Vec3',
+    value = LineCoords,
+    description = 'Copy the coords at the end of the line'
+})
+LineCoordsButton3:On('select', function(item, newValue, oldValue)
+    CopyDrawLine('3')
+end)
+
+local LineCoordsButton4 = LineCoords:AddButton({
+    icon = '4️⃣',
+    label = 'Copy Coords Line Vec4',
+    value = LineCoords,
+    description = 'Copy the coords at the end of the line'
+})
+LineCoordsButton4:On('select', function(item, newValue, oldValue)
+    CopyDrawLine('4')
+end)
+
+local LineCoordsButton5 = LineCoords:AddSlider({
+    icon = '📏',
+    label = 'Line Length',
+    value = GetCurrentEntityViewDistance(),
+    values = {{
+        label = '5',
+        value = '5',
+        description = 'Line Length'
+    }, {
+        label = '10',
+        value = '10',
+        description = 'Line Length'
+    }, {
+        label = '15',
+        value = '15',
+        description = 'Line Length'
+    }, {
+        label = '20',
+        value = '20',
+        description = 'Line Length'
+    }, {
+        label = '25',
+        value = '25',
+        description = 'Line Length'
+    }, {
+        label = '30',
+        value = '30',
+        description = 'Line Length'
+    }, {
+        label = '35',
+        value = '35',
+        description = 'Line Length'
+    }, {
+        label = '40',
+        value = '40',
+        description = 'Line Length'
+    }, {
+        label = '45',
+        value = '45',
+        description = 'Line Length'
+    }, {
+        label = '50',
+        value = '50',
+        description = 'Line Length'
+    }}
+})
+
+LineCoordsButton5:On("select", function(_, value)
+    SetLineDistance(value)
+    QBCore.Functions.Notify('Set Line Distance To '..tostring(value))
+end)
+
 
 local EntityMenuButton0 = EntityMenu:AddCheckbox({
     icon = '💡',
@@ -422,6 +586,7 @@ function ChangePlate()
             for k,v in pairs(dialog) do
                 print(k .. " : " .. v)
                 if k == 'plate' then
+                    -- TriggerServerEvent('qb-admin:server:logVehiclePlate', PlayerPedId(), vehicle, oldplate, v)
                     TriggerServerEvent('qb-admin:getPlate', v:upper(), GetVehicleNumberPlateText(GetVehiclePedIsIn(PlayerPedId(), false)):match( "^%s*(.-)%s*$" ))
                     SetVehicleNumberPlateText(vehicle, v)
                     SetVehicleNumberPlateTextIndex(vehicle, 0)
@@ -434,6 +599,24 @@ function ChangePlate()
                 end
             end
         -- end
+    end
+end
+
+function DrawText3D(x, y, z, text)
+    local onScreen, _x, _y = World3dToScreen2d(x, y, z)
+    if onScreen then
+        SetTextScale(0.35, 0.35)
+        SetTextFont(4)
+        SetTextProportional(1)
+        SetTextColour(255, 255, 255, 255)
+        SetTextDropshadow(0, 0, 0, 0, 255)
+        SetTextEdge(2, 0, 0, 0, 150)
+        SetTextDropShadow()
+        SetTextOutline()
+        SetTextEntry("STRING")
+        SetTextCentre(1)
+        AddTextComponentString(text)
+        DrawText(_x, _y)
     end
 end
 
@@ -560,6 +743,45 @@ local function DrawEntityBoundingBox(entity, color)
     DrawLine(edge3.x, edge3.y, edge3.z, edge5.x, edge5.y, edge5.z, color.r, color.g, color.b, color.a)
     DrawLine(edge4.x, edge4.y, edge4.z, edge6.x, edge6.y, edge6.z, color.r, color.g, color.b, color.a)
 end
+
+Citizen.CreateThread(function()
+    while true do
+        Citizen.Wait(0)
+        if isDrawingLine then
+            local playerPed = PlayerPedId()
+            local playerCoords = GetEntityCoords(playerPed)
+            local playerHeading = GetEntityHeading(playerPed)
+            local cameraRotation = GetGameplayCamRot(2)
+            local camPitch = math.rad(cameraRotation.x)
+            local camYaw = math.rad(cameraRotation.y)
+            local lineLength = LineDistance
+            local forwardVector = vector3(
+                math.sin(-playerHeading * math.pi / 180.0) * math.cos(camPitch),
+                math.cos(-playerHeading * math.pi / 180.0) * math.cos(camPitch),
+                math.sin(camPitch)
+            )
+            local lineEnd = playerCoords + forwardVector * lineLength
+            local rayHandle = StartShapeTestRay(playerCoords.x, playerCoords.y, playerCoords.z, lineEnd.x, lineEnd.y,
+                lineEnd.z, 7, playerPed, 0)
+            local _, hit, hitCoords, _, _ = GetShapeTestResult(rayHandle)
+            DrawLine(playerCoords.x, playerCoords.y, playerCoords.z, lineEnd.x, lineEnd.y, lineEnd.z, 255, 0, 0, 255)
+            if hit then
+                local roundedCoords = {
+                    x = string.format("%.2f", hitCoords.x),
+                    y = string.format("%.2f", hitCoords.y),
+                    z = string.format("%.2f", hitCoords.z)
+                }
+                local heading = playerHeading + 180.0
+                if heading > 360.0 then
+                    heading = heading - 360.0
+                end
+                DrawText3D(hitCoords.x, hitCoords.y, hitCoords.z + 1.0,
+                    string.format('~r~Collision~n~X: %.2f Y: %.2f Z: %.2f~n~Heading: %.2f', hitCoords.x, hitCoords.y,
+                        hitCoords.z, heading))
+            end
+        end
+    end
+end)
 
 CreateThread(function()	-- While loop needed for delete lazer
 	while true do
