@@ -15,14 +15,14 @@ soundvolume = 0
 menuLocation = 'topright' -- e.g. topright (default), topleft, bottomright, bottomleft
 menuSize = 'size-125' -- e.g. 'size-100', 'size-110', 'size-125', 'size-150', 'size-175', 'size-200'
 r, g, b = 255, 184, 226 -- red, green, blue values for the menu background https://www.w3schools.com/colors/colors_rgb.asp
-title = "Maple Hearts" -- Config Banner Text
+title = "Maple Leaf" -- Config Banner Text
 local inJail = false
 local jailTime = 0
 local isRunText = false
 
 --false, Lang:t("menu.admin_menu")
 
-MainMenu = MenuV:CreateMenu(title, "Maple Hearts Admin Menu", menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:mainmenu')
+MainMenu = MenuV:CreateMenu(title, "Maple Leaf Admin Menu", menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:mainmenu')
 SelfMenu = MenuV:CreateMenu(title, Lang:t("menu.admin_options"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:selfmenu')
 PlayerMenu = MenuV:CreateMenu(title, Lang:t("menu.online_players"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:playermenu')
 PlayerDetailMenu = MenuV:CreateMenu(title, Lang:t("info.options"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:playerdetailmenu')
@@ -44,6 +44,7 @@ VehNameMenu = MenuV:CreateMenu(title, Lang:t("menu.vehicle_models"), menuLocatio
 DealerMenu = MenuV:CreateMenu(title, Lang:t("menu.dealer_list"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:dealermenu')
 DevMenu = MenuV:CreateMenu(title, Lang:t("menu.developer_options"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:devmenu')
 EntityMenu = MenuV:CreateMenu(title, Lang:t("menu.entity_view_desc"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:entityviewmenu')
+LineCoords = MenuV:CreateMenu(title, Lang:t("menu.entity_view_desc"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:linecoords')
 local weaponMenu = MenuV:CreateMenu(title, "Weapon Menu", menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:weaponMenu')
 local weaponSelect = MenuV:CreateMenu(title, Lang:t("menu.spawn_weapons"), menuLocation, r, g, b, menuSize, 'default', 'menuv', 'qb-admin:weaponSelect')
 
