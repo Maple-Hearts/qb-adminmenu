@@ -20,6 +20,8 @@ local permissions = { -- What should each permission be able to do
     ['savecar'] = 'admin',
     ['playsound'] = 'admin',
     ['usemenu'] = 'mod',
+    ['changeplate'] = 'admin',
+    ['changename'] = 'admin',
 }
 local PermissionOrder = { -- Permission hierarchy order from top to bottom
     'god',
@@ -39,7 +41,32 @@ end
 -- Events
 
 RegisterNetEvent('qb-admin:server:logAction', function(type, string)
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = type,
+        action = string
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff '..type, 'red', string, false)
+end)
+
+
+
+RegisterNetEvent('qb-admin:server:logVehiclePlate', function(player, vehicle, oldplate, plate)
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+            data = player,
+        },
+        type = 'plate-change',
+        vehicle = vehicle,
+        oldplate = oldplate,
+        plate = plate
+    })
+    TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Plate Change', 'red', string, false)
 end)
 
 RegisterNetEvent('qb-admin:server:GetPlayersForBlips', function()
@@ -68,6 +95,17 @@ RegisterNetEvent('qb-admin:server:kill', function(player)
     if not (QBCore.Functions.HasPermission(src, permissions['kill'])) then return end
     --if PermOrder(src) > PermOrder(target) then return end
 
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'kill',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Kill', 'red', string.format('%s has killed %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     TriggerClientEvent('hospital:client:KillPlayer', target)
 end)
@@ -76,7 +114,17 @@ RegisterNetEvent('qb-admin:server:revive', function(player)
     local src = source
 
     if not (QBCore.Functions.HasPermission(src, permissions['revive'])) then return end
-    
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'revive',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Revive', 'red', string.format('%s is reviving %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     TriggerClientEvent('hospital:client:Revive', player.id)
 end)
@@ -91,11 +139,33 @@ RegisterNetEvent('qb-admin:server:freeze', function(player)
 
     if IsFrozen[target] then
         FreezeEntityPosition(target, false)
+        exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+            player = {
+                name = GetPlayerName(source),
+                source = source,
+            },
+            type = 'unfreeze',
+            target = {
+                name = GetPlayerName(player.id),
+                source = player.id
+            }
+        })
         TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Freeze', 'red', string.format('%s is unfreezing %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
         IsFrozen[target] = false
     else
         FreezeEntityPosition(target, true)
         IsFrozen[target] = true
+        exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+            player = {
+                name = GetPlayerName(source),
+                source = source,
+            },
+            type = 'freeze',
+            target = {
+                name = GetPlayerName(player.id),
+                source = player.id
+            }
+        })
         TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Freeze', 'red', string.format('%s is freezing %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     end
 end)
@@ -106,7 +176,17 @@ RegisterNetEvent('qb-admin:server:spectate', function(player)
     local coords = GetEntityCoords(targetped)
 
     if not (QBCore.Functions.HasPermission(src, permissions['spectate'])) then return end
-    
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'spectate',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Spectate', 'red', string.format('%s is spectating %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     TriggerClientEvent('qb-admin:client:spectate', src, player.id, coords)
 end)
@@ -117,7 +197,17 @@ RegisterNetEvent('qb-admin:server:goto', function(player)
     local coords = GetEntityCoords(GetPlayerPed(player.id))
     
     if not (QBCore.Functions.HasPermission(src, permissions['goto'])) then return end
-
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'teleport goto',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff TP', 'red', string.format('%s teleported to %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     SetEntityCoords(admin, coords)
 end)
@@ -129,7 +219,17 @@ RegisterNetEvent('qb-admin:server:bring', function(player)
     local target = GetPlayerPed(player.id)
     
     if not (QBCore.Functions.HasPermission(src, permissions['bring'])) then return end
-    
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'teleport bring',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Player Teleported', 'red', string.format('%s brought %s to themselves (%s)', GetPlayerName(src), GetPlayerName(target), player.id), false)
     SetEntityCoords(target, coords)
 end)
@@ -156,7 +256,18 @@ RegisterNetEvent('qb-admin:server:kick', function(player, reason)
     
     if not (QBCore.Functions.HasPermission(src, permissions['kick'])) then return end
     if PermOrder(src) > PermOrder(target) then return end
-    
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'kick',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        },
+        reason = reason
+    })
     TriggerEvent('qb-log:server:CreateLog', 'bans', 'Player Kicked', 'red', string.format('%s was kicked by %s for %s', GetPlayerName(target), GetPlayerName(src), reason), false)
     DropPlayer(target, Lang:t("info.kicked_server") .. ':\n' .. reason .. '\n\n' .. Lang:t("info.check_discord") .. QBCore.Config.Server.discord)
 end)
@@ -166,6 +277,14 @@ RegisterServerEvent('qb-admin:server:giveWeapon', function(weapon)
     if QBCore.Functions.HasPermission(src, 'admin') then
         local Player = QBCore.Functions.GetPlayer(src)
         Player.Functions.AddItem(weapon, 1)
+        exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+            player = {
+                name = GetPlayerName(source),
+                source = source,
+            },
+            type = 'giveweapon',
+            weapon = weapon
+        })
         TriggerEvent('qb-log:server:CreateLog', 'staff', 'Weapon Spawned', 'red', string.format('%s spawned in %s', GetPlayerName(src), weapon), false)
     else
         TriggerClientEvent('QBCore:Notify', src, 'You can not spawn this.', 'error', 5000)
@@ -192,9 +311,20 @@ RegisterNetEvent('qb-admin:server:ban', function(player, time, reason)
         banTime,
         GetPlayerName(src)
     })
-    TriggerClientEvent('chat:addMessage', -1, {
-        template = "<div class=chat-message server'><strong>ANNOUNCEMENT | {0} has been banned:</strong> {1}</div>",
-        args = {GetPlayerName(target), reason}
+    -- TriggerClientEvent('chat:addMessage', -1, {
+    --     template = "<div class=chat-message server'><strong>ANNOUNCEMENT | {0} has been banned:</strong> {1}</div>",
+    --     args = {GetPlayerName(target), reason}
+    -- })
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'ban',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
     })
     TriggerEvent('qb-log:server:CreateLog', 'bans', 'Player Banned', 'red', string.format('%s was banned by %s for %s', GetPlayerName(target), GetPlayerName(src), reason), true)
     if banTime >= 2147483647 then
@@ -208,7 +338,7 @@ RegisterNetEvent('qb-admin:server:setPermissions', function(targetId, group)
     local src = source
 
     if not (QBCore.Functions.HasPermission(src, permissions['setPermissions'])) then return end
-    if PermOrder(src) > PermOrder(targetId) then return end
+    -- if PermOrder(src) > PermOrder(targetId) then return end
 
     QBCore.Functions.AddPermission(targetId, group[1].rank)
     TriggerClientEvent('QBCore:Notify', targetId, Lang:t("info.rank_level")..group[1].label)
@@ -219,7 +349,17 @@ RegisterNetEvent('qb-admin:server:cloth', function(player)
     local src = source
 
     if not (QBCore.Functions.HasPermission(src, permissions['cloth'])) then return end
-
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(source),
+            source = source,
+        },
+        type = 'clothing menu',
+        target = {
+            name = GetPlayerName(player.id),
+            source = player.id
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Clothing Menu', 'red', string.format('%s has given clothing menu to %s (%s)', GetPlayerName(src), GetPlayerName(player.id), player.id), false)
     TriggerClientEvent('qb-clothing:client:openMenu', player.id)
 end)
@@ -242,6 +382,21 @@ RegisterNetEvent('qb-admin:server:spawnVehicle', function(model)
     SetEntityHeading(vehicle, heading)
     TaskWarpPedIntoVehicle(player, vehicle, -1)
     TriggerClientEvent('vehiclekeys:client:SetOwner', src, GetVehicleNumberPlateText(vehicle))
+    local Play = QBCore.Functions.GetPlayer(src)
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        event = 'spawn',
+        type = 'vehicle',
+        player = {
+            name = GetPlayerName(src),
+            source = src,
+            cid = Play.PlayerData.citizenid
+        },
+        vehicle = {
+            name = GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(hash),
+            hash = hash,
+            plate = GetVehicleNumberPlateText(vehicle)
+        }
+    })
     TriggerEvent('qb-log:server:CreateLog', 'staff', 'Staff Spawn Vehicle', 'red', string.format('%s has spawned a vehicle named %s (%s)', GetPlayerName(src), GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(hash), hash), false)
 end)
 
@@ -253,6 +408,21 @@ RegisterNetEvent('qb-admin:server:SaveCar', function(mods, vehicle, hash, plate)
     if result[1] ~= nil then TriggerClientEvent('QBCore:Notify', src, Lang:t("error.failed_vehicle_owner"), 'error', 3000) return end
     if not (QBCore.Functions.HasPermission(src, permissions['savecar'])) then return end
     
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        event = 'save',
+        type = 'vehicle',
+        player = {
+            name = GetPlayerName(src),
+            source = src,
+            cid = Player.PlayerData.citizenid
+        },
+        vehicle = {
+            vehicle = vehicle,
+            hash = hash,
+            plate = plate,
+            mods = mods,
+        }
+    })
     MySQL.Async.insert('INSERT INTO player_vehicles (license, citizenid, vehicle, hash, mods, plate, state) VALUES (?, ?, ?, ?, ?, ?, ?)', {
         Player.PlayerData.license,
         Player.PlayerData.citizenid,
@@ -352,6 +522,7 @@ end)
 
 RegisterNetEvent('qb-admin:readyname')
 AddEventHandler('qb-admin:readyname', function(newname, newlast , adminid)
+    if not QBCore.Functions.HasPermission(source, permissions['changename']) then return end
     local src = source
     local fnew = tostring(newname)
     local lnew = tostring(newlast)
@@ -366,6 +537,25 @@ AddEventHandler('qb-admin:readyname', function(newname, newlast , adminid)
     print("^1Current Name: ^0" .. charinfo.firstname .. "^1 Current last name: ^0" .. charinfo.lastname)
     local oldname = charinfo.firstname
     local oldlname = charinfo.lastname
+    exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+        player = {
+            name = GetPlayerName(src),
+            source = src,
+        },
+        type = 'change name',
+        target = {
+            name = GetPlayerName(Player.id),
+            source = Player.id,
+            old = {
+                first = oldname,
+                last = oldlname
+            },
+            new = {
+                first = newname,
+                last = newlast
+            }
+        }
+    })
     charinfo.firstname = fnew
     charinfo.lastname = lnew
     charinfo = json.encode(charinfo)
@@ -380,6 +570,7 @@ AddEventHandler('qb-admin:readyname', function(newname, newlast , adminid)
 end)
 
 RegisterNetEvent('qb-admin:getPlate', function(plate, currentPlate)
+    if not QBCore.Functions.HasPermission(source, permissions['changeplate']) then return end
     local source <const> = source
     local xPlayer = QBCore.Functions.GetPlayer(source)
     print('1')
@@ -416,7 +607,20 @@ RegisterNetEvent('qb-admin:getPlate', function(plate, currentPlate)
                                     ['citizenid'] = xPlayer.PlayerData.citizenid,
                                     ['vehicle'] = json.encode(vehicle)
                                 })
+                                
                                 SetVehicleNumberPlateText(GetVehiclePedIsIn(GetPlayerPed(source)), plate)
+                                exports['dabz-logs']:log('info', 'qb-adminmenu', 'adminaction', {
+                                    player = {
+                                        name = GetPlayerName(source),
+                                        source = source,
+                                        cid = xPlayer.PlayerData.citizenid
+                                    },
+                                    type = 'change plate',
+                                    target = {
+                                        plate = vehicle.plate,
+                                        vehicle = json.encode(vehicle)
+                                    }
+                                })
                                 TriggerClientEvent('QBCore:Notify', source, 'Your new plate has been set!')
                                 return
                             end
